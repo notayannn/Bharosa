@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+pydantic-settings
+supabase
+langgraph
+langchain-core
+python-multipart
+pytesseract
+rapidfuzz
+xhtml2pdf
+apscheduler
+pyjwt[crypto]
