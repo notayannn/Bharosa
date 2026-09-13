@@ -9,7 +9,11 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
+from app.api import businesses, clients, invoices, payments
+
 app = FastAPI(title="Bharosa API", version="0.1.0")
+
+app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
 
 
 @app.get("/health")

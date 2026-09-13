@@ -3,7 +3,7 @@ from datetime import date
 from langchain_core.tools import tool
 from supabase import create_client, Client
 
-from agents.config import settings
+from app.agents.config import settings
 
 _admin_client: Client | None = None
 
@@ -111,4 +111,96 @@ def update_invoice_status(invoice_id: str, new_status: str) -> dict:
     result = (
         client.table("invoices").update({"status": new_status}).eq("id", invoice_id).execute()
     )
+    return result.data[0]
+
+@tool
+def get_open_invoices_for_client(client_id: str) -> list[dict]:
+    """
+    Fetch every invoice for a client that isn't fully paid or written off --
+    the candidate set the Reconciliation Agent checks an uploaded payment
+    against.
+    """
+    client = _get_admin_client()
+    result = (
+        client.table("invoices")
+        .select("*")
+        .eq("client_id", client_id)
+        .not_.in_("status", ["paid", "written_off"])
+        .order("due_date")
+        .execute()
+    )
+    return result.data
+
+
+@tool
+def create_pending_payment(
+    client_id: str,
+    amount: float | None,
+    transaction_id: str | None,
+    slip_url: str | None,
+    method: str = "manual_slip",
+) -> dict:
+    """
+    Creates the initial payments row right after a slip is uploaded, before
+    reconciliation has run. invoice_id starts null -- filled in once the
+    Reconciliation Agent (or owner review) decides which invoice this
+    payment settles.
+    """
+    client = _get_admin_client()
+    result = client.table("payments").insert({
+        "client_id": client_id,
+        "amount": amount,
+        "transaction_id": transaction_id,
+        "slip_url": slip_url,
+        "method": method,
+        "verified": False,
+    }).execute()
+    return result.data[0]
+
+
+@tool
+def update_payment(payment_id: str, invoice_id: str | None, verified: bool, verified_by: str) -> dict:
+    """
+    Updates a payment row once the Reconciliation Agent has decided which
+    invoice it settles (or that it can't decide confidently and needs
+    owner review, in which case invoice_id stays null and verified stays
+    false).
+    """
+    client = _get_admin_client()
+    result = (
+        client.table("payments")
+        .update({"invoice_id": invoice_id, "verified": verified, "verified_by": verified_by})
+        .eq("id", payment_id)
+        .execute()
+    )
+    return result.data[0]
+
+
+@tool
+def log_agent_action(
+    agent_name: str,
+    action_type: str,
+    invoice_id: str | None,
+    business_id: str | None,
+    input_summary: str,
+    decision: str,
+    confidence: float | None,
+    requires_approval: bool,
+) -> dict:
+    """
+    Writes an audit row to agent_actions -- every autonomous decision any
+    agent makes gets logged here (Section 12), regardless of which other
+    table (if any) it also wrote to.
+    """
+    client = _get_admin_client()
+    result = client.table("agent_actions").insert({
+        "agent_name": agent_name,
+        "action_type": action_type,
+        "invoice_id": invoice_id,
+        "business_id": business_id,
+        "input_summary": input_summary,
+        "decision": decision,
+        "confidence": confidence,
+        "requires_approval": requires_approval,
+    }).execute()
     return result.data[0]
