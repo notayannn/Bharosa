@@ -128,26 +128,35 @@ def _reason_ambiguous_case(payment: dict, open_invoices: list[dict]) -> Reconcil
     return decision
 
 
+def apply_settlement(payment_id: str, decision: ReconciliationDecision) -> None:
+    """
+    Actually commits a settlement -- called either automatically (exact
+    match, no review needed) or from the approval endpoint once an owner
+    approves an ambiguous-case recommendation.
+    """
+    for line in decision.settlement_plan:
+        record_ledger_entry.invoke({
+            "invoice_id": line.invoice_id,
+            "entry_type": "payment_received",
+            "amount": line.amount_applied,
+            "actor": "agent",
+            "agent_name": "reconciliation_agent",
+            "reasoning_summary": decision.reasoning,
+        })
+        update_invoice_status.invoke({"invoice_id": line.invoice_id, "new_status": "paid"})
+
+    settled_invoice_id = decision.settlement_plan[0].invoice_id if decision.settlement_plan else None
+    update_payment.invoke({
+        "payment_id": payment_id,
+        "invoice_id": settled_invoice_id,
+        "verified": True,
+        "verified_by": "agent",
+    })
+
+
 def _apply_decision(payment_id: str, business_id: str, decision: ReconciliationDecision) -> None:
     if not decision.requires_owner_review:
-        for line in decision.settlement_plan:
-            record_ledger_entry.invoke({
-                "invoice_id": line.invoice_id,
-                "entry_type": "payment_received",
-                "amount": line.amount_applied,
-                "actor": "agent",
-                "agent_name": "reconciliation_agent",
-                "reasoning_summary": decision.reasoning,
-            })
-            update_invoice_status.invoke({"invoice_id": line.invoice_id, "new_status": "paid"})
-
-        settled_invoice_id = decision.settlement_plan[0].invoice_id if decision.settlement_plan else None
-        update_payment.invoke({
-            "payment_id": payment_id,
-            "invoice_id": settled_invoice_id,
-            "verified": True,
-            "verified_by": "agent",
-        })
+        apply_settlement(payment_id, decision)
 
     log_agent_action.invoke({
         "agent_name": "reconciliation_agent",
