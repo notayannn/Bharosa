@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta, datetime
 
 from langchain_core.tools import tool
 from supabase import create_client, Client
@@ -204,3 +204,105 @@ def log_agent_action(
         "requires_approval": requires_approval,
     }).execute()
     return result.data[0]
+
+@tool
+def get_upcoming_invoices(business_id: str) -> list[dict]:
+    """
+    Fetch invoices for a business due in exactly 3 days and not yet paid --
+    the pre-due nudge window the Escalation Agent checks on its schedule.
+    """
+    client = _get_admin_client()
+    target_date = (date.today() + timedelta(days=3)).isoformat()
+    result = (
+        client.table("invoices")
+        .select("*")
+        .eq("business_id", business_id)
+        .eq("due_date", target_date)
+        .not_.in_("status", ["paid", "written_off"])
+        .execute()
+    )
+    return result.data
+
+
+@tool
+def record_reminder(invoice_id: str, channel: str, template_used: str, response_status: str) -> dict:
+    """
+    Logs a reminder as sent. DEMO NOTE: no real message is dispatched --
+    this just records that the Escalation Agent decided to send one, via
+    which channel and template, so the reminder history/audit trail is
+    real even though delivery is simulated.
+    """
+    client = _get_admin_client()
+    result = client.table("reminders").insert({
+        "invoice_id": invoice_id,
+        "channel": channel,
+        "template_used": template_used,
+        "response_status": response_status,
+        "sent_at": datetime.utcnow().isoformat(),
+    }).execute()
+    return result.data[0]
+
+
+@tool
+def list_all_business_ids() -> list[str]:
+    """
+    Returns every business's id -- used by the scheduler to loop through
+    all businesses when running periodic checks. Not a per-invoice tool
+    like the others, but lives here since it uses the same admin client.
+    """
+    client = _get_admin_client()
+    result = client.table("businesses").select("id").execute()
+    return [row["id"] for row in result.data]
+
+@tool
+def get_dispute(dispute_id: str) -> dict:
+    """Fetch a single dispute by its ID."""
+    client = _get_admin_client()
+    result = client.table("disputes").select("*").eq("id", dispute_id).execute()
+    if not result.data:
+        return {"error": f"Dispute {dispute_id} not found."}
+    return result.data[0]
+
+
+@tool
+def create_dispute(invoice_id: str, raised_by: str, claim_type: str, claim_details: str) -> dict:
+    """Logs a new dispute claim against an invoice, status starts 'open'."""
+    client = _get_admin_client()
+    result = client.table("disputes").insert({
+        "invoice_id": invoice_id,
+        "raised_by": raised_by,
+        "claim_type": claim_type,
+        "claim_details": claim_details,
+        "status": "open",
+    }).execute()
+    return result.data[0]
+
+
+@tool
+def resolve_dispute(dispute_id: str, status: str, resolution: str, resolved_by: str) -> dict:
+    """Updates a dispute's status and resolution once judged, by agent or owner."""
+    client = _get_admin_client()
+    result = (
+        client.table("disputes")
+        .update({"status": status, "resolution": resolution, "resolved_by": resolved_by})
+        .eq("id", dispute_id)
+        .execute()
+    )
+    return result.data[0]
+
+
+@tool
+def get_invoice_ledger(invoice_id: str) -> list[dict]:
+    """
+    Fetch ledger entries for a single invoice, oldest first -- what the
+    Dispute Resolution Agent reads to judge a claim's plausibility.
+    """
+    client = _get_admin_client()
+    result = (
+        client.table("ledger_entries")
+        .select("*")
+        .eq("invoice_id", invoice_id)
+        .order("created_at")
+        .execute()
+    )
+    return result.data
