@@ -10,10 +10,21 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from app.api import businesses, clients, invoices, payments
+from app.api import businesses, clients, invoices, payments, escalation
+from app.scheduler import start_scheduler
+from app.api import businesses, clients, invoices, payments, escalation, disputes, chatbot, approvals
 
 app = FastAPI(title="Bharosa API", version="0.1.0")
 
+@app.on_event("startup")
+def on_startup():
+    start_scheduler()
+
 app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
+app.include_router(escalation.router, prefix="/api/escalation", tags=["escalation"])
+app.include_router(disputes.router, prefix="/api/disputes", tags=["disputes"])
+app.include_router(chatbot.router, prefix="/api/chatbot", tags=["chatbot"])
+app.include_router(approvals.router, prefix="/api/approvals", tags=["approvals"])
 
 
 @app.get("/health")
