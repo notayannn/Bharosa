@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.core.auth import get_current_user, CurrentUser
 from app.core.supabase_client import get_supabase_client
 from app.agents.ledger_agent import _get_admin_client
-from app.agents.reconciliation_agent import ReconciliationDecision, apply_settlement
+from app.agents.recon_agent import ReconciliationDecision, apply_settlement
 from app.agents.dispute_agent import apply_dispute_action
 
 router = APIRouter()

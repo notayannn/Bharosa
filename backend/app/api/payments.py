@@ -7,7 +7,7 @@ from app.core.auth import get_current_user, CurrentUser
 from app.core.supabase_client import get_supabase_client
 from app.ingestion.router import extract, UnsupportedFileType
 from app.agents.ledger_agent import create_pending_payment
-from app.agents.recon_agent import reconcile_payment
+from app.agents.orchestrator import run_reconciliation_flow
 
 router = APIRouter()
 
@@ -50,7 +50,8 @@ async def upload_payment_slip(
         "slip_url": saved_path,
     })
 
-    decision = reconcile_payment(payment_id=payment["id"], business_id=business_id)
+    flow_result = run_reconciliation_flow(payment_id=payment["id"], business_id=business_id)
+    decision = flow_result["decision"]
 
     return {
         "payment": payment,
