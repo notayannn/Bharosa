@@ -11,11 +11,6 @@ _jwks_client = PyJWKClient(f"{settings.SUPABASE_URL}/auth/v1/.well-known/jwks.js
 
 
 class CurrentUser:
-    """
-    Wraps the decoded JWT claims plus the raw token itself — routes need
-    both: `.id` for business_id lookups, `.token` for building a per-request
-    Supabase client that enforces RLS as this specific user.
-    """
 
     def __init__(self, token: str, claims: dict):
         self.token = token
