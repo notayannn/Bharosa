@@ -12,8 +12,8 @@ class DisputeCreate(BaseModel):
     business_id: str
     invoice_id: str
     raised_by: str
-    claim_type: str
-    claim_details: str
+    claim_text: str
+    claim_amount: float | None = None
 
 
 @router.post("")
@@ -26,8 +26,8 @@ def raise_dispute(payload: DisputeCreate, user: CurrentUser = Depends(get_curren
     dispute = create_dispute.invoke({
         "invoice_id": payload.invoice_id,
         "raised_by": payload.raised_by,
-        "claim_type": payload.claim_type,
-        "claim_details": payload.claim_details,
+        "claim_text": payload.claim_text,
+        "claim_amount": payload.claim_amount,
     })
     decision = resolve_dispute_case(dispute_id=dispute["id"], business_id=payload.business_id)
     return {"dispute": dispute, "resolution": decision.model_dump()}
