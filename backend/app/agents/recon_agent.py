@@ -1,22 +1,7 @@
-"""
-Reconciliation Agent (spec Section 6.2).
-
-Given an uploaded payment and a client's open invoices, decides which
-invoice(s) it settles. Exact-amount matches are handled deterministically --
-no LLM call needed. Ambiguous cases (partial payment, one payment covering
-multiple invoices, amount mismatched against a claimed discount) go through
-an LLM reasoning step that proposes a settlement plan and a confidence score.
-
-Not yet wired into the Orchestrator (that's Day 4) -- for now it's called
-directly by the payments upload route right after ingestion extracts the
-slip's amount/transaction ID.
-"""
 import json
 from decimal import Decimal
-
 from openai import OpenAI
 from pydantic import BaseModel, Field
-
 from app.agents.config import settings
 from app.agents.ledger_agent import (
     _get_admin_client,
@@ -27,7 +12,7 @@ from app.agents.ledger_agent import (
     log_agent_action,
 )
 
-CONFIDENCE_THRESHOLD = 0.9  # per Section 6.2 -- below this, always owner_review
+CONFIDENCE_THRESHOLD = 0.9
 AMOUNT_TOLERANCE = Decimal("0.01")  # float rounding slack for exact-match comparison
 
 _llm_client = OpenAI(api_key=settings.LLM_API_KEY, base_url=settings.LLM_BASE_URL)
@@ -41,8 +26,7 @@ class SettlementLine(BaseModel):
 class ReconciliationDecision(BaseModel):
     """
     Schema-validated output -- the LLM's free-text reasoning never reaches
-    the Orchestrator directly, only this structured decision does (the
-    'no agent returns free text as final output' rule in Section 6).
+    the Orchestrator directly, only this structured decision does
     """
     settlement_plan: list[SettlementLine] = Field(default_factory=list)
     confidence: float
@@ -85,8 +69,7 @@ def _find_exact_match(payment: dict, open_invoices: list[dict]) -> dict | None:
         inv for inv in open_invoices
         if abs(Decimal(str(inv["amount"])) - Decimal(str(payment["amount"]))) <= AMOUNT_TOLERANCE
     ]
-    # Two invoices with the same amount is itself an ambiguous case, not a
-    # clean match -- only count it as exact if exactly one candidate matches.
+
     return candidates[0] if len(candidates) == 1 else None
 
 
@@ -115,8 +98,7 @@ def _reason_ambiguous_case(payment: dict, open_invoices: list[dict]) -> Reconcil
         parsed = json.loads(raw)
         decision = ReconciliationDecision(**parsed)
     except (json.JSONDecodeError, TypeError, ValueError):
-        # LLM returned something we can't validate -- fail safe to owner
-        # review rather than silently guessing at a settlement.
+
         decision = ReconciliationDecision(
             settlement_plan=[], confidence=0.0, requires_owner_review=True,
             reasoning="Reconciliation Agent couldn't produce a valid settlement plan; routed to owner review.",
@@ -130,9 +112,7 @@ def _reason_ambiguous_case(payment: dict, open_invoices: list[dict]) -> Reconcil
 
 def apply_settlement(payment_id: str, decision: ReconciliationDecision) -> None:
     """
-    Actually commits a settlement -- called either automatically (exact
-    match, no review needed) or from the approval endpoint once an owner
-    approves an ambiguous-case recommendation.
+    Actually commits a settlement
     """
     for line in decision.settlement_plan:
         record_ledger_entry.invoke({
