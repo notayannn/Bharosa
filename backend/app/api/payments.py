@@ -1,8 +1,6 @@
 import os
 import uuid
-
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
-
 from app.core.auth import get_current_user, CurrentUser
 from app.core.supabase_client import get_supabase_client
 from app.ingestion.router import extract, UnsupportedFileType
@@ -22,12 +20,7 @@ async def upload_payment_slip(
     file: UploadFile = File(...),
     user: CurrentUser = Depends(get_current_user),
 ):
-    """
-    Owner uploads a photographed payment slip for one of their clients.
-    Runs OCR extraction, creates the pending payments row, then immediately
-    hands off to the Reconciliation Agent -- synchronous for now since
-    Day 4's Orchestrator doesn't exist yet.
-    """
+
     client = get_supabase_client(user.token)
     business = client.table("businesses").select("id").eq("id", business_id).execute()
     if not business.data:
