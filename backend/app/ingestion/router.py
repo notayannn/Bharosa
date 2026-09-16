@@ -1,5 +1,4 @@
 import magic
-
 from app.ingestion.extractors.base import Extractor, ExtractedData
 from app.ingestion.extractors.tesseract import TesseractExtractor
 
@@ -7,11 +6,6 @@ from app.ingestion.extractors.tesseract import TesseractExtractor
 class UnsupportedFileType(Exception):
     pass
 
-
-# Phase 1 demo only handles photographed slips (images). Bank-statement
-# PDFs and the vision-LLM fallback are deliberately unimplemented stubs
-# (bank_statement.py / vision_llm.py) -- routing a PDF there surfaces a
-# clear NotImplementedError instead of failing silently.
 _IMAGE_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 
