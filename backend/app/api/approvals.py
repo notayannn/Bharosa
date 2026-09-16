@@ -50,7 +50,7 @@ def decide_approval(action_id: str, approved: bool, user: CurrentUser = Depends(
         decision_data = json.loads(action["decision"])
         if action["action_type"] == "reconcile_payment":
             decision = ReconciliationDecision(**decision_data)
-            payment_id = action["input_summary"].split("=")[1]  # "payment_id=<id>"
+            payment_id = action["input_summary"].split("=")[1]
             apply_settlement(payment_id, decision)
         elif action["action_type"] == "resolve_dispute":
             dispute_id = action["input_summary"].split(",")[0].split("=")[1]
