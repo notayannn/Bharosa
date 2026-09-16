@@ -7,9 +7,6 @@ from app.ingestion.extractors.base import Extractor, ExtractedData
 
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-# Demo-level heuristics only -- real production slips are messy enough that
-# this would eventually move to the vision-LLM fallback (vision_llm.py,
-# currently a Phase 2 stub). Good enough for a clean test slip image.
 _AMOUNT_PATTERN = re.compile(
     r"(?:rs\.?|pkr)\s*[:\-]?\s*([\d,]+(?:\.\d{1,2})?)", re.IGNORECASE
 )
@@ -19,7 +16,7 @@ _TXN_PATTERN = re.compile(
 
 
 class TesseractExtractor(Extractor):
-    """Phase 1 default — handles clean photographed slips/receipts."""
+    """ handles clean photographed slips/receipts."""
 
     def extract(self, file_path: str) -> ExtractedData:
         image = Image.open(file_path)
@@ -38,8 +35,6 @@ class TesseractExtractor(Extractor):
         if txn_match:
             transaction_id = txn_match.group(1)
 
-        # Confidence reflects whether we actually found structured data, not
-        # just whether OCR ran without crashing.
         confidence = 0.7 if (amount is not None or transaction_id is not None) else 0.3
 
         return ExtractedData(
