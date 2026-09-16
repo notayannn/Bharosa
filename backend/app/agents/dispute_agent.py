@@ -1,18 +1,7 @@
-"""
-Dispute Resolution Agent (spec Section 6.4) -- simplified version.
-
-Given a client's dispute claim, judges plausibility using the invoice's
-ledger history and the claim details directly (no pgvector/RAG -- cut for
-demo time, per the Day 4 scope decision). Tier 2 (auto-resolve) below the
-Rs. 10,000 threshold at high confidence; Tier 3 (owner review) above it,
-or whenever confidence is low, regardless of amount.
-"""
 import json
 from decimal import Decimal
-
 from openai import OpenAI
 from pydantic import BaseModel
-
 from app.agents.config import settings
 from app.agents.ledger_agent import (
     get_dispute,
@@ -25,14 +14,14 @@ from app.agents.ledger_agent import (
 )
 
 CONFIDENCE_THRESHOLD = 0.9
-TIER3_AMOUNT_THRESHOLD = Decimal("10000")  # Rs. 10,000 per spec
+TIER3_AMOUNT_THRESHOLD = Decimal("10000")
 
 _llm_client = OpenAI(api_key=settings.LLM_API_KEY, base_url=settings.LLM_BASE_URL)
 
 
 class DisputeDecision(BaseModel):
     is_plausible: bool
-    recommended_action: str  # dismiss_dispute | write_off | adjust_invoice | escalate_to_owner
+    recommended_action: str
     confidence: float
     requires_owner_review: bool
     reasoning: str
@@ -90,14 +79,11 @@ def _judge(dispute: dict, invoice: dict, ledger_history: list[dict]) -> DisputeD
 
 
 def apply_dispute_action(dispute_id: str, invoice_id: str, action: str, reasoning: str) -> None:
-    """
-    Actually applies a dispute resolution -- called automatically (Tier 2)
-    or from the approval endpoint once an owner approves a Tier 3 case.
-    """
+
     if action == "dismiss_dispute":
         resolve_dispute.invoke({
-            "dispute_id": dispute_id, "status": "dismissed",
-            "resolution": reasoning, "resolved_by": "agent",
+            "dispute_id": dispute_id, "status": "auto_resolved",
+            "resolution_summary": reasoning,
         })
     elif action == "write_off":
         update_invoice_status.invoke({"invoice_id": invoice_id, "new_status": "written_off"})
@@ -107,7 +93,7 @@ def apply_dispute_action(dispute_id: str, invoice_id: str, action: str, reasonin
         })
         resolve_dispute.invoke({
             "dispute_id": dispute_id, "status": "resolved",
-            "resolution": reasoning, "resolved_by": "agent",
+            "resolution_summary": reasoning,
         })
     elif action == "adjust_invoice":
         record_ledger_entry.invoke({
@@ -116,10 +102,8 @@ def apply_dispute_action(dispute_id: str, invoice_id: str, action: str, reasonin
         })
         resolve_dispute.invoke({
             "dispute_id": dispute_id, "status": "resolved",
-            "resolution": reasoning, "resolved_by": "agent",
+            "resolution_summary": reasoning,
         })
-    # "escalate_to_owner" applies nothing -- terminal state for
-    # requires_owner_review, no further DB write needed beyond the log.
 
 
 def _apply_dispute_decision(dispute_id: str, business_id: str, decision: DisputeDecision) -> None:
