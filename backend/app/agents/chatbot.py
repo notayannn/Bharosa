@@ -1,21 +1,12 @@
-"""
-Owner Chatbot (spec Section 8) -- read-only HITL query mode.
-
-Owner asks a natural-language question about their business; this resolves
-it using the same ledger_agent tools the autonomous agents use, via LLM
-tool-calling. Nothing here writes to the database -- see approvals.py for
-the write-capable half.
-"""
 import json
-
 from openai import OpenAI
-
 from app.agents.config import settings
 from app.agents.ledger_agent import (
     get_overdue_invoices,
     get_upcoming_invoices,
     get_client_ledger,
     get_invoice,
+    list_clients,
 )
 
 _llm_client = OpenAI(api_key=settings.LLM_API_KEY, base_url=settings.LLM_BASE_URL)
@@ -41,13 +32,16 @@ _TOOLS_SCHEMA = [
         "description": "Get a single invoice's details and status by invoice_id.",
         "parameters": {"type": "object", "properties": {"invoice_id": {"type": "string"}}, "required": ["invoice_id"]},
     }},
+        {"type": "function", "function": {
+        "name": "list_clients",
+        "description": "List all clients for this business with their id and name. Use this first if you need a client_id but only have a client's name.",
+        "parameters": {"type": "object", "properties": {}, "required": []},
+    }},
 ]
 
 
 def _execute_tool(name: str, args: dict, business_id: str) -> str:
-    # business_id is always injected server-side, never trusted from the
-    # LLM's tool call -- keeps the chatbot scoped to the calling owner's
-    # own business no matter what the LLM tries to pass.
+
     if name == "get_overdue_invoices":
         result = get_overdue_invoices.invoke({"business_id": business_id})
     elif name == "get_upcoming_invoices":
@@ -56,6 +50,8 @@ def _execute_tool(name: str, args: dict, business_id: str) -> str:
         result = get_client_ledger.invoke({"client_id": args["client_id"]})
     elif name == "get_invoice":
         result = get_invoice.invoke({"invoice_id": args["invoice_id"]})
+    elif name == "list_clients":
+        result = list_clients.invoke({"business_id": business_id})
     else:
         result = {"error": f"Unknown tool {name}"}
     return json.dumps(result, default=str)
@@ -66,12 +62,16 @@ def answer_query(business_id: str, question: str) -> str:
         {"role": "system", "content": (
             "You are the Bharosa owner's assistant. Answer questions about "
             "their invoices, clients, and ledger using the tools available. "
-            "Only discuss this business's own data. Be concise."
+            "Only discuss this business's own data. Be concise. "
+            "Reply in plain conversational text only -- no Markdown, no "
+            "tables, no bullet points, no bold/italic formatting, since "
+            "your response is shown in a plain chat bubble that can't "
+            "render any of that."
         )},
         {"role": "user", "content": question},
     ]
 
-    for _ in range(3):  # cap tool-calling rounds to avoid a runaway loop
+    for _ in range(3):
         response = _llm_client.chat.completions.create(
             model=settings.LLM_MODEL,
             messages=messages,
