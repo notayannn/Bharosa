@@ -1,8 +1,6 @@
 from datetime import date
-
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-
 from app.core.auth import get_current_user, CurrentUser
 from app.core.supabase_client import get_supabase_client
 
@@ -20,12 +18,7 @@ class InvoiceCreate(BaseModel):
 
 @router.post("")
 def create_invoice(payload: InvoiceCreate, user: CurrentUser = Depends(get_current_user)):
-    """
-    Issues a new invoice. Also writes the corresponding ledger_entries row
-    in the same call — an invoice existing without a matching ledger entry
-    would violate the append-only ledger being the source of truth
-    (Section 12 of the spec), so these two writes always happen together.
-    """
+
     client = get_supabase_client(user.token)
 
     invoice_result = client.table("invoices").insert({

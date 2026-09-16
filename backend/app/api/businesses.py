@@ -13,11 +13,7 @@ class BusinessCreate(BaseModel):
 
 @router.post("")
 def create_business(payload: BusinessCreate, user: CurrentUser = Depends(get_current_user)):
-    """
-    Creates the business record for the currently logged-in owner. Each
-    user should only ever have one business in Phase 1 — the frontend
-    calls this once, right after signup, before anything else works.
-    """
+
     client = get_supabase_client(user.token)
     result = client.table("businesses").insert({
         "name": payload.name,
@@ -30,8 +26,7 @@ def create_business(payload: BusinessCreate, user: CurrentUser = Depends(get_cur
 def get_my_business(user: CurrentUser = Depends(get_current_user)):
     """
     Returns the calling user's own business — RLS guarantees this can only
-    ever return their own row, never anyone else's, even if you forgot to
-    filter by owner_user_id here (which, notice, we didn't have to).
+    ever return their own row, never anyone else's
     """
     client = get_supabase_client(user.token)
     result = client.table("businesses").select("*").execute()
