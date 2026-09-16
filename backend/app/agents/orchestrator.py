@@ -1,22 +1,5 @@
-"""
-Orchestrator (spec Section 5).
-
-The ONLY component allowed to change an invoice's `status`. Agents (like
-the Reconciliation Agent) propose an outcome; this is what commits it and
-logs the transition. Implemented as a LangGraph state machine so each step
-is an explicit node/edge -- this is also where Day 5's Dispute Resolution
-Agent and the chatbot's approval flow plug in as new nodes/branches.
-
-PRAGMATIC NOTE: reconcile_payment() already writes the ledger entry /
-invoice status / payment row internally (see reconciliation_agent.py). This
-graph wraps that call rather than duplicating the write logic -- the value
-here is the explicit state machine structure and a single funnel point for
-this flow, not a second commit step.
-"""
 from typing import TypedDict, Optional
-
 from langgraph.graph import StateGraph, END
-
 from app.agents.recon_agent import reconcile_payment, ReconciliationDecision
 
 
@@ -24,7 +7,7 @@ class ReconciliationFlowState(TypedDict):
     payment_id: str
     business_id: str
     decision: Optional[ReconciliationDecision]
-    outcome: Optional[str]  # "paid" | "owner_review"
+    outcome: Optional[str]
 
 
 def _reconcile_node(state: ReconciliationFlowState) -> ReconciliationFlowState:
@@ -67,8 +50,7 @@ _compiled_graph = _graph.compile()
 
 def run_reconciliation_flow(payment_id: str, business_id: str) -> ReconciliationFlowState:
     """
-    Entry point called by the payments upload route. Nothing else should
-    call reconcile_payment directly anymore -- this is the funnel.
+    Entry point called by the payments upload route
     """
     initial_state: ReconciliationFlowState = {
         "payment_id": payment_id,
