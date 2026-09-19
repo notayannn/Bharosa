@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bharosa — Invoice</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div id="sidebar-root"></div>
+
+    <main class="main">
+      <!-- Create mode -->
+      <div id="create-mode" style="display:none;">
+        <h2>New invoice</h2>
+        <p class="subhead">Issue a new invoice to a client</p>
+        <div class="card">
+          <form id="create-invoice-form">
+            <select id="invoice-client" required></select>
+            <input type="number" id="invoice-amount" placeholder="Amount (PKR)" step="0.01" required />
+            <label>Issue date</label>
+            <input type="date" id="invoice-issue-date" required />
+            <label>Due date</label>
+            <input type="date" id="invoice-due-date" required />
+            <button type="submit">Create invoice</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Detail mode -->
+      <div id="detail-mode" style="display:none;">
+        <h2 id="invoice-title"></h2>
+        <p class="subhead" id="invoice-subhead"></p>
+
+        <div class="card">
+          <div class="card-header"><h3>Get paid</h3></div>
+          <div class="btn-row">
+            <button class="placeholder" id="pay-jazzcash-btn">Pay via JazzCash</button>
+            <button class="placeholder" id="pay-easypaisa-btn">Pay via EasyPaisa</button>
+            <button class="placeholder" id="whatsapp-btn">Send reminder via WhatsApp</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>Documents</h3></div>
+          <div class="btn-row">
+            <button class="secondary" id="download-invoice-btn">Download invoice PDF</button>
+            <button class="secondary" id="download-receipt-btn" style="display:none;">Download receipt</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>Upload payment slip</h3></div>
+          <form id="upload-form">
+            <input type="file" id="slip-file" accept="image/*" required />
+            <button type="submit">Upload &amp; reconcile</button>
+          </form>
+          <p class="subhead" id="upload-result"></p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Ledger history</h3>
+          </div>
+          <div id="ledger-list"><p class="subhead">Loading…</p></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Disputes</h3>
+            <button class="secondary" id="raise-dispute-btn">Raise dispute</button>
+          </div>
+          <div id="disputes-list"><p class="subhead">No disputes on this invoice.</p></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="dispute-modal">
+    <div class="modal">
+      <h3>Raise dispute</h3>
+      <form id="dispute-form">
+        <select id="dispute-raised-by" required>
+          <option value="client">Raised by client</option>
+          <option value="owner">Raised by me (owner)</option>
+        </select>
+        <textarea id="dispute-details" placeholder="Details of the claim" required></textarea>
+        <input type="number" id="dispute-amount" placeholder="Disputed amount (optional)" step="0.01" />
+        <div class="btn-row">
+          <button type="submit">Submit</button>
+          <button type="button" class="secondary" id="dispute-cancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script type="module" src="/js/invoice.js"></script>
+</body>
+</html>
