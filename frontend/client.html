@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bharosa — Client</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div id="sidebar-root"></div>
+
+    <main class="main">
+      <h2 id="client-name-header">Loading…</h2>
+      <p class="subhead" id="client-contact-sub"></p>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Invoices</h3>
+          <button id="new-invoice-btn">New invoice</button>
+        </div>
+        <table>
+          <thead><tr><th>Amount</th><th>Issued</th><th>Due</th><th>Status</th></tr></thead>
+          <tbody id="invoices-body"><tr class="empty-row"><td colspan="4">Loading…</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>Disputes</h3></div>
+        <div id="disputes-list"><p class="subhead">Loading…</p></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script type="module" src="/js/client.js"></script>
+</body>
+</html>
