@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bharosa — Clients</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div id="sidebar-root"></div>
+
+    <main class="main">
+      <h2>Clients</h2>
+      <p class="subhead">Everyone you invoice</p>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>All clients</h3>
+          <button id="new-client-btn">New client</button>
+        </div>
+        <table>
+          <thead><tr><th>Name</th><th>Contact</th><th>Open invoices</th><th></th></tr></thead>
+          <tbody id="clients-body"><tr class="empty-row"><td colspan="4">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="client-modal">
+    <div class="modal">
+      <h3>New client</h3>
+      <form id="client-form">
+        <input type="text" id="client-name" placeholder="Client name" required />
+        <input type="text" id="client-contact" placeholder="Phone or email (optional)" />
+        <div class="btn-row">
+          <button type="submit">Create</button>
+          <button type="button" class="secondary" id="client-cancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script type="module" src="/js/clients.js"></script>
+</body>
+</html>
