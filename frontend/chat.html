@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bharosa — AI Chat Assistant</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <div id="sidebar-root"></div>
+
+    <main class="main chat-page">
+      <div class="chat-page-header">
+        <h2>AI Chat Assistant</h2>
+        <button class="secondary" id="clear-history-btn">Clear history</button>
+      </div>
+
+      <div class="chat-scroll" id="chat-scroll">
+        <div class="chat-empty">Ask about your invoices, clients, or ledger.</div>
+      </div>
+
+      <div class="chat-input-bar">
+        <input type="text" id="chat-input" placeholder="e.g. which clients are overdue?" />
+        <button id="chat-send">Send</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/config.js"></script>
+  <script type="module" src="/js/chat.js"></script>
+</body>
+</html>
