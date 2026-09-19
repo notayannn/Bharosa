@@ -55,3 +55,14 @@ export async function requireAuth() {
   }
   return data?.session;
 }
+
+export async function downloadDocument(path) {
+  const response = await apiFetch(path);
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || "Failed to generate document");
+  }
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank");
+}
