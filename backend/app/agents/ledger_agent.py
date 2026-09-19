@@ -219,7 +219,9 @@ def log_agent_action(
     confidence: float | None,
     requires_approval: bool,
 ) -> dict:
-
+    """
+    Record an agent decision or audit step into the agent_actions log table.
+    """
     client = _get_admin_client()
     result = client.table("agent_actions").insert({
         "agent_name": agent_name,
@@ -256,6 +258,7 @@ def create_dispute(invoice_id: str, raised_by: str, claim_text: str, claim_amoun
         "status": "open",
     }).execute()
     return result.data[0]
+
 
 @tool
 def list_clients(business_id: str) -> list[dict]:

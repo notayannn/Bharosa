@@ -20,6 +20,15 @@ app = FastAPI(title="Bharosa API", version="0.1.0")
 def on_startup():
     start_scheduler()
 
+@app.get("/client")
+def serve_client_page():
+    return FileResponse("../frontend/client.html")
+
+
+@app.get("/chat")
+def serve_chat_page():
+    return FileResponse("../frontend/chat.html")
+
 
 @app.get("/health")
 def health():
