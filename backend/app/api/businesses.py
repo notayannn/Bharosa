@@ -10,6 +10,23 @@ router = APIRouter()
 class BusinessCreate(BaseModel):
     name: str
 
+class BusinessUpdate(BaseModel):
+    name: str
+
+
+@router.patch("/me")
+def update_my_business(payload: BusinessUpdate, user: CurrentUser = Depends(get_current_user)):
+    """
+    Renames the calling user's own business. RLS scopes this the same way
+    as every other route here — the update can only ever touch a business
+    this user owns.
+    """
+    client = get_supabase_client(user.token)
+    result = client.table("businesses").update({"name": payload.name}).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="No business found for this user.")
+    return result.data[0]
+
 
 @router.post("")
 def create_business(payload: BusinessCreate, user: CurrentUser = Depends(get_current_user)):

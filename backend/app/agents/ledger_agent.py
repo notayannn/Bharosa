@@ -280,6 +280,15 @@ def resolve_dispute(dispute_id: str, status: str, resolution_summary: str) -> di
     )
     return result.data[0]
 
+@tool
+def get_client(client_id: str) -> dict:
+    """Fetch a single client's details, including contact_channels, by ID."""
+    client = _get_admin_client()
+    result = client.table("clients").select("*").eq("id", client_id).execute()
+    if not result.data:
+        return {"error": f"Client {client_id} not found."}
+    return result.data[0]
+
 
 @tool
 def get_invoice_ledger(invoice_id: str) -> list[dict]:

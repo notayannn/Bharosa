@@ -12,5 +12,15 @@ class Settings(BaseSettings):
     SUPABASE_PUBLISHABLE_KEY: str
     SUPABASE_SECRET_KEY: str
 
+    GREENAPI_INSTANCE_ID: str
+    GREENAPI_TOKEN_ID: str
+
+    EMAIL_PROVIDER: str = "resend"
+    EMAIL_API_KEY: str
+    EMAIL_FROM_ADDRESS: str
+
+    API_BASE_URL: str = "http://localhost:8000"
+    FRONTEND_URL: str = "http://localhost:8000"
+
 
 settings = Settings()
