@@ -1,3 +1,4 @@
+import platform
 import re
 
 import pytesseract
@@ -5,8 +6,16 @@ from PIL import Image
 
 from app.ingestion.extractors.base import Extractor, ExtractedData
 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# Windows doesn't reliably put Tesseract on PATH after install, so point
+# at it explicitly there. Linux containers (Render) install it via apt
+# and it lands on PATH automatically, so no override is needed -- setting
+# a Windows-style path there would just break the lookup entirely.
+if platform.system() == "Windows":
+    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
+# Demo-level heuristics only -- real production slips are messy enough that
+# this would eventually move to the vision-LLM fallback (vision_llm.py,
+# currently a Phase 2 stub). Good enough for a clean test slip image.
 _AMOUNT_PATTERN = re.compile(
     r"(?:rs\.?|pkr)\s*[:\-]?\s*([\d,]+(?:\.\d{1,2})?)", re.IGNORECASE
 )
@@ -16,7 +25,7 @@ _TXN_PATTERN = re.compile(
 
 
 class TesseractExtractor(Extractor):
-    """ handles clean photographed slips/receipts."""
+    """Phase 1 default — handles clean photographed slips/receipts."""
 
     def extract(self, file_path: str) -> ExtractedData:
         image = Image.open(file_path)

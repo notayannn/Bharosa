@@ -1,4 +1,4 @@
-import { apiFetch, requireAuth, supabase, downloadDocument } from "./api.js";
+import { apiFetch, requireAuth, supabase, downloadDocument, API_BASE_URL } from "./api.js";
 import { showToast, showPlaceholder } from "./toast.js";
 import { mountSidebar } from "./sidebar.js";
 
@@ -92,7 +92,7 @@ async function renderDetailMode() {
     formData.append("file", fileInput.files[0]);
 
     const { data } = await supabase.auth.getSession();
-    const response = await fetch("http://localhost:8000/api/payments/upload", {
+        const response = await fetch(`${API_BASE_URL}/api/payments/upload`, {
       method: "POST",
       headers: { Authorization: `Bearer ${data.session.access_token}` },
       body: formData,

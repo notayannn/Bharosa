@@ -13,6 +13,8 @@ document.getElementById("client-name-header").textContent = client.name;
 document.getElementById("client-contact-sub").textContent =
   client.contact_channels?.primary ? `Contact: ${client.contact_channels.primary}` : "No contact info on file";
 
+  setupContactEdit();
+
 document.getElementById("new-invoice-btn").addEventListener("click", () => {
   window.location.href = `/invoice?client_id=${clientId}`;
 });
@@ -66,5 +68,74 @@ async function loadDisputes(invoices) {
     : "<p class='subhead'>No disputes recorded for this client.</p>";
 }
 
+function setupContactEdit() {
+  const displayEl = document.getElementById("client-title-display");
+  const formEl = document.getElementById("contact-edit-form");
+  const inputEl = document.getElementById("contact-edit-input");
+  const subEl = document.getElementById("client-contact-sub");
+
+  document.getElementById("edit-contact-btn").addEventListener("click", () => {
+    inputEl.value = client.contact_channels?.primary || "";
+    formEl.style.display = "flex";
+    inputEl.focus();
+  });
+
+  document.getElementById("contact-cancel-btn").addEventListener("click", () => {
+    formEl.style.display = "none";
+  });
+
+  formEl.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const value = inputEl.value.trim();
+    if (!value) return;
+
+    const response = await apiFetch(`/api/clients/${clientId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ contact_channels: { primary: value } }),
+    });
+    const updated = await response.json();
+    client.contact_channels = updated.contact_channels;
+    subEl.textContent = `Contact: ${value}`;
+    formEl.style.display = "none";
+  });
+}
+
+async function loadRiskIndicator(invoices) {
+  const badge = document.getElementById("risk-badge");
+  const paidInvoices = invoices.filter((inv) => inv.status === "paid");
+
+  if (!paidInvoices.length) {
+    badge.innerHTML = `<span class="risk-badge risk-new">New client</span>`;
+    return;
+  }
+
+  const invoiceIds = paidInvoices.map((inv) => inv.id);
+  const { data: paymentEntries } = await supabase
+    .from("ledger_entries")
+    .select("*")
+    .in("invoice_id", invoiceIds)
+    .eq("entry_type", "payment_received");
+
+  const dueDateByInvoice = Object.fromEntries(paidInvoices.map((inv) => [inv.id, inv.due_date]));
+  let lateCount = 0;
+
+  (paymentEntries || []).forEach((entry) => {
+    const dueDate = dueDateByInvoice[entry.invoice_id];
+    if (dueDate && new Date(entry.created_at) > new Date(dueDate)) lateCount++;
+  });
+
+  const total = (paymentEntries || []).length || 1;
+  const lateRatio = lateCount / total;
+
+  if (lateRatio === 0) {
+    badge.innerHTML = `<span class="risk-badge risk-good">Reliable payer</span>`;
+  } else if (lateRatio <= 0.4) {
+    badge.innerHTML = `<span class="risk-badge risk-watch">Occasionally late</span>`;
+  } else {
+    badge.innerHTML = `<span class="risk-badge risk-poor">Frequently late</span>`;
+  }
+}
+
 const invoices = await loadInvoices();
 await loadDisputes(invoices);
+await loadRiskIndicator(invoices);

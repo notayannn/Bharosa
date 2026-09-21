@@ -1,0 +1,11 @@
+venv/
+backend/venv/
+**/__pycache__/
+**/*.pyc
+.env
+backend/.env
+.git/
+.gitignore
+db/
+docs/
+*.md

@@ -8,7 +8,7 @@ export const supabase = createClient(
   window.__ENV__.SUPABASE_PUBLISHABLE_KEY
 );
 
-const API_BASE_URL = "http://localhost:8000";
+export const API_BASE_URL = window.__ENV__.API_BASE_URL;
 
 /**
  * Fetch wrapper that automatically attaches the current user's Supabase

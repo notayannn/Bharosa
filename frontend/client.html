@@ -11,8 +11,17 @@
     <div id="sidebar-root"></div>
 
     <main class="main">
-      <h2 id="client-name-header">Loading…</h2>
+            <div class="editable-title" id="client-title-display">
+        <h2 id="client-name-header">Loading… <span id="risk-badge"></span></h2>
+        <button class="edit-title-btn" id="edit-contact-btn" title="Edit contact info" aria-label="Edit contact info">✎</button>
+      </div>
       <p class="subhead" id="client-contact-sub"></p>
+
+      <form class="title-edit-form" id="contact-edit-form" style="display:none; margin-bottom:1.5rem;">
+        <input type="text" id="contact-edit-input" placeholder="Email or WhatsApp number" required />
+        <button type="submit" class="success">Save</button>
+        <button type="button" class="secondary" id="contact-cancel-btn">Cancel</button>
+      </form>
 
       <div class="card">
         <div class="card-header">

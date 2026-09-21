@@ -7,39 +7,67 @@
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
+  <script>
+    document.documentElement.setAttribute("data-theme", localStorage.getItem("bharosa-theme") || "dark");
+  </script>
+
   <div class="auth-shell">
     <div class="auth-panel">
       <main class="auth-container">
-        <h1>Bharosa</h1>
-        <p class="tagline">A shared, verifiable ledger between you and your clients.</p>
+        <div class="auth-brand">
+          <div class="mark">B</div>
+          <div class="name">Bharosa</div>
+        </div>
+
+        <h1 id="auth-title">Welcome back</h1>
+        <p class="tagline" id="auth-tagline">Log in to your ledger.</p>
+
+        <div class="auth-tabs">
+          <div class="auth-tab active" id="tab-login">Log in</div>
+          <div class="auth-tab" id="tab-signup">Sign up</div>
+        </div>
 
         <form id="auth-form">
-          <input type="email" id="email" placeholder="Email" required />
-          <input type="password" id="password" placeholder="Password" required />
-          <button type="submit" id="login-btn">Log In</button>
-          <button type="button" class="secondary" id="signup-btn">Sign Up</button>
+          <div id="signup-only-fields" style="display:none; flex-direction:column; gap:0.85rem;">
+            <label>Full name</label>
+            <input type="text" id="full-name" placeholder="Your name" />
+            <label>Business name</label>
+            <input type="text" id="business-name-signup" placeholder="Your business name" />
+          </div>
+
+          <label>Email</label>
+          <input type="email" id="email" placeholder="you@business.com" required />
+
+          <label>Password</label>
+          <input type="password" id="password" placeholder="Enter your password" required />
+
+          <div id="confirm-password-field" style="display:none; flex-direction:column; gap:0.85rem;">
+            <label>Confirm password</label>
+            <input type="password" id="confirm-password" placeholder="Re-enter your password" />
+          </div>
+
+          <button type="submit" id="login-btn">Log in</button>
         </form>
 
         <p id="error-msg" class="error"></p>
+
+        <p class="auth-footer" id="auth-switch-hint">
+          Don't have an account? <a href="#" id="switch-to-signup">Sign up</a>
+        </p>
       </main>
     </div>
 
     <div class="auth-visual">
-      <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="200" cy="200" r="180" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-        <circle cx="200" cy="200" r="130" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-        <rect x="110" y="90" width="120" height="150" rx="8" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.3)"/>
-        <line x1="130" y1="120" x2="210" y2="120" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
-        <line x1="130" y1="145" x2="210" y2="145" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
-        <line x1="130" y1="170" x2="185" y2="170" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
-        <rect x="170" y="160" width="120" height="150" rx="8" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)"/>
-        <line x1="190" y1="190" x2="270" y2="190" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
-        <line x1="190" y1="215" x2="270" y2="215" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
-        <line x1="190" y1="240" x2="245" y2="240" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
-        <circle cx="270" cy="275" r="22" fill="#2f9e5c"/>
-        <path d="M260 275 L267 283 L282 267" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      </svg>
-      <div class="visual-caption">Every invoice, payment, and dispute — recorded once, seen by both sides.</div>
+      <div class="visual-top">Bharosa</div>
+      <div class="visual-mid">
+        <div class="feature-chip"><div class="icon">◈</div>Shared, verifiable ledger with every client</div>
+        <div class="feature-chip"><div class="icon">⟳</div>Automatic payment reconciliation</div>
+        <div class="feature-chip"><div class="icon">◎</div>AI-assisted dispute resolution</div>
+      </div>
+      <div class="visual-bottom">
+        <h2>Trust, recorded.</h2>
+        <p>Every invoice, payment, and dispute — seen by both sides, settled by neither guessing.</p>
+      </div>
     </div>
   </div>
 

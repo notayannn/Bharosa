@@ -20,43 +20,78 @@
       </div>
 
       <div id="dashboard-content" style="display:none;">
-        <h2 id="business-name-header"></h2>
+        <div class="editable-title" id="title-display">
+          <h2 id="business-name-header"></h2>
+          <button class="edit-title-btn" id="edit-title-btn" title="Rename business" aria-label="Rename business">✎</button>
+        </div>
+        <form class="title-edit-form" id="title-edit-form" style="display:none;">
+          <input type="text" id="title-edit-input" required />
+          <button type="submit" class="success">Save</button>
+          <button type="button" class="secondary" id="title-cancel-btn">Cancel</button>
+        </form>
         <p class="subhead">Overview of your ledger</p>
 
         <div class="stat-row">
-          <div class="stat-card overdue"><div class="value" id="stat-overdue">–</div><div class="label">Overdue invoices</div></div>
-          <div class="stat-card pending"><div class="value" id="stat-approvals">–</div><div class="label">Awaiting review</div></div>
-          <div class="stat-card neutral"><div class="value" id="stat-total">–</div><div class="label">Total invoices</div></div>
-          <div class="stat-card neutral"><div class="value" id="stat-clients">–</div><div class="label">Total clients</div></div>
+          <div class="stat-card overdue"><div class="value" id="stat-overdue">-</div><div class="label">Overdue invoices</div></div>
+          <div class="stat-card pending"><div class="value" id="stat-approvals">-</div><div class="label">Awaiting review</div></div>
+          <div class="stat-card neutral"><div class="value" id="stat-total">-</div><div class="label">Total invoices</div></div>
+          <div class="stat-card neutral"><div class="value" id="stat-clients">-</div><div class="label">Total clients</div></div>
+          <div class="stat-card"><div class="value" id="stat-revenue">-</div><div class="label">Collected (paid)</div></div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h3>Pending approvals</h3>
-          </div>
-          <table>
-            <thead><tr><th>Agent</th><th>Action</th><th>Confidence</th><th></th></tr></thead>
-            <tbody id="approvals-body"><tr class="empty-row"><td colspan="4">Loading…</td></tr></tbody>
-          </table>
-        </div>
+        <div class="dashboard-grid">
+          <div class="main-col">
+            <div class="card">
+              <div class="card-header"><h3>Invoices by status</h3></div>
+              <div class="chart-wrap"><canvas id="status-chart"></canvas></div>
+            </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h3>Invoices</h3>
-            <div class="btn-row">
-              <button class="secondary" id="run-reminders-btn">Send reminders now</button>
-              <button id="new-invoice-btn">New invoice</button>
+            <div class="card">
+              <div class="card-header"><h3>Recent ledger activity</h3></div>
+              <div id="activity-list"><p class="subhead">Loading…</p></div>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><h3>Invoices</h3></div>
+              <table>
+                <thead><tr><th>Client</th><th>Amount</th><th>Due</th><th>Status</th></tr></thead>
+                <tbody id="invoices-body"><tr class="empty-row"><td colspan="4">Loading…</td></tr></tbody>
+              </table>
             </div>
           </div>
-          <table>
-            <thead><tr><th>Client</th><th>Amount</th><th>Due</th><th>Status</th></tr></thead>
-            <tbody id="invoices-body"><tr class="empty-row"><td colspan="4">Loading…</td></tr></tbody>
-          </table>
+
+          <div class="side-col">
+            <div class="card">
+              <div class="card-header"><h3>Quick actions</h3></div>
+              <div class="quick-actions-col">
+                <button id="qa-new-invoice">New invoice</button>
+                <button class="secondary" id="qa-new-client">New client</button>
+                <button class="secondary" id="qa-ask-ai">Ask AI assistant</button>
+                <button class="secondary" id="run-reminders-btn">Send reminders now</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><h3>Pending approvals</h3></div>
+              <div id="approvals-list"><p class="subhead">Loading…</p></div>
+            </div>
+
+              <div class="card">
+                <div class="card-header collapsible-header" id="whatsapp-toggle">
+                  <h3>WhatsApp</h3>
+                  <span class="chevron">▾</span>
+                </div>
+                <div class="collapsible-body" id="whatsapp-panel-wrap">
+                  <div id="whatsapp-panel"><p class="subhead">Checking connection…</p></div>
+                </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="/js/config.js"></script>
   <script type="module" src="/js/dashboard.js"></script>
 </body>
